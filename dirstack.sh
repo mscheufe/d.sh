@@ -76,7 +76,6 @@ dirstack::delete() { __dirstack::delete $*; dirstack::update; }
 
 # add current directory to $DIRSTACK
 dirstack::add() {
-    echo $BASH_SUBSHELL
     if [[ "$PWD" != "$HOME" ]]; then
         awk 'NR > 1' <(dirs -l -p) <(echo $PWD) | sort | uniq >$DIR_STORE
     fi
