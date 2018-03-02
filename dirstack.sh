@@ -3,9 +3,11 @@ LEADER=${LEADER:-","}
 
 # colors
 BLUE="\e[34;m"
+RED="\e[31;m"
 RESCOL="\e[0m"
 
 __dirstack::blue() { echo -en "$BLUE$*$RESCOL"; }
+__dirstack::red() { echo -en "$RED$*$RESCOL"; }
 
 # populate $DIRSTACK from $DIR_STORE
 __dirstack::populate() {
@@ -22,9 +24,6 @@ __dirstack::populate() {
         eval "popd +$(( ${#DIRSTACK[@]} - 1 )) >/dev/null"
     fi
 }
-
-# cd to the nth element in $DIRSTACK
-dirstack::cd() { eval "cd ~$1"; }
 
 # sort numeric parameters in desc order
 __dirstack::sort() { echo "$*" | tr " " "\n" | sort -nr | tr "\n" " "; }
@@ -54,7 +53,7 @@ __dirstack::delete() {
     dirs -l -p | awk 'NR > 1' | sort >$DIR_STORE
 }
 
-# prepend $PWD to relative path
+# prepend $PWD to relative pathes like ./<PATH> or <PATH>
 __dirstack::prependpwd() {
     local path="$*"
     if [[ $path =~ ^\. ]]; then
@@ -63,6 +62,25 @@ __dirstack::prependpwd() {
         path="$PWD/$path"
     fi
     echo $path
+}
+
+# cd to the nth element in $DIRSTACK
+dirstack::cd() {
+    (( ${#*} == 0 )) && { cd $HOME; return 0; }
+    local err_msg=
+    local err_regexp=".+$1:(.+)(out.+range)$"
+    local dir_tilde_exp=$(dirs -l +$1 2>&1)
+    if [[ $dir_tilde_exp =~ $err_regexp ]]; then
+        err_msg="ERROR: ${BASH_REMATCH[1]} '$1' ${BASH_REMATCH[2]}"
+        echo -e $(__dirstack::red $err_msg)
+    else
+        if [[ -d $dir_tilde_exp ]]; then
+            cd $dir_tilde_exp
+        else
+            err_msg="ERROR: directory '$dir_tilde_exp' does not exist"
+            echo -e $(__dirstack::red $err_msg)
+        fi
+    fi
 }
 
 # clears $DIRSTACK and wipes $DIR_STORE
