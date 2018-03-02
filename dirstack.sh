@@ -2,12 +2,13 @@ DIR_STORE=${DIR_STORE:-"${HOME}/.dir_store"}
 LEADER=${LEADER:-","}
 
 # colors
-BLUE="\e[34;m"
-RED="\e[31;m"
-RESCOL="\e[0m"
+readonly RESET_COL='\033[m'
+readonly COLOR_BLUE='\033[0;34m'
+readonly COLOR_RED='\033[0;31m'
 
-__dirstack::blue() { echo -en "$BLUE$*$RESCOL"; }
-__dirstack::red() { echo -en "$RED$*$RESCOL"; }
+
+__dirstack::blue() { echo -en "$COLOR_BLUE$*$RESET_COL"; }
+__dirstack::red() { echo -en "$COLOR_RED$*$RESET_COL"; }
 
 # populate $DIRSTACK from $DIR_STORE
 __dirstack::populate() {
@@ -64,6 +65,21 @@ __dirstack::prependpwd() {
     echo $path
 }
 
+# add all directories provided via STDIN to $DIRSTACK
+__dirstack::addmany() {
+    local temp_1=$(mktemp)
+    local temp_2=$(mktemp)
+    while read dirname; do
+        dirname=$(__dirstack::prependpwd "$dirname")
+        if [[ -d "$dirname" ]]; then
+            echo "$dirname"
+        fi
+    done </dev/stdin >$temp_1
+    cat $temp_1 $DIR_STORE | sort | uniq >$temp_2
+    rm $temp_1
+    mv $temp_2 $DIR_STORE
+}
+
 # cd to the nth element in $DIRSTACK
 dirstack::cd() {
     (( ${#*} == 0 )) && { cd $HOME; return 0; }
@@ -99,19 +115,10 @@ dirstack::add() {
     fi
 }
 
-# add all directories provided via STDIN to $DIRSTACK
+# add all directories available in $PWD
 dirstack::addmany() {
-    local temp_1=$(mktemp)
-    local temp_2=$(mktemp)
-    while read dirname; do
-        dirname=$(__dirstack::prependpwd "$dirname")
-        if [[ -d "$dirname" ]]; then
-            echo "$dirname"
-        fi
-    done </dev/stdin >$temp_1
-    cat $temp_1 $DIR_STORE | sort | uniq >$temp_2
-    rm $temp_1
-    mv $temp_2 $DIR_STORE
+    find . -type d -depth 1 | __dirstack::addmany
+    dirstack::update
 }
 
 # update $DIRSTACK from $DIR_STORE
@@ -126,7 +133,7 @@ dirstack::list() {
 
 alias ${LEADER}l="dirstack::list"
 alias ${LEADER}a="dirstack::add; dirstack::update"
-alias ${LEADER}am="dirstack::addmany; dirstack::update"
+alias ${LEADER}am="dirstack::addmany"
 alias ${LEADER}g="dirstack::cd"
 alias ${LEADER}c="dirstack::clear"
 alias ${LEADER}u="dirstack::update"
