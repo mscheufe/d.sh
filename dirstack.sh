@@ -7,11 +7,11 @@ readonly COLOR_BLUE='\033[0;34m'
 readonly COLOR_RED='\033[0;31m'
 
 
-__dirstack::blue() { echo -en "$COLOR_BLUE$*$RESET_COL"; }
-__dirstack::red() { echo -en "$COLOR_RED$*$RESET_COL"; }
+_d::blue() { echo -en "$COLOR_BLUE$*$RESET_COL"; }
+_d::red() { echo -en "$COLOR_RED$*$RESET_COL"; }
 
 # populate $DIRSTACK from $DIR_STORE
-__dirstack::populate() {
+_d::populate() {
     local working_dir=${1:-$HOME}
     if [[ -f $DIR_STORE ]]; then
         # clear $DIRSTACK
@@ -27,10 +27,10 @@ __dirstack::populate() {
 }
 
 # sort numeric parameters in desc order
-__dirstack::sort() { echo "$*" | tr " " "\n" | sort -nr | tr "\n" " "; }
+_d::sort() { echo "$*" | tr " " "\n" | sort -nr | tr "\n" " "; }
 
 # parameter lists like 6 0 1-5 are expanded and sorted to 6 5 4 3 2 1
-__dirstack::expandparams() {
+_d::expandparams() {
     local _exp_params=""
     for i in $*; do
         if [[ $i =~ ^([0-9]+)-([0-9]+)$ ]]; then
@@ -40,12 +40,12 @@ __dirstack::expandparams() {
             _exp_params="$_exp_params $i"
         fi
     done
-    __dirstack::sort $_exp_params
+    _d::sort $_exp_params
 }
 
 # rm nth element from $DIRSTACK
-__dirstack::delete() {
-    params=$(__dirstack::expandparams $*)
+_d::delete() {
+    params=$(_d::expandparams $*)
     for i in $params; do
         if [[ $i =~ ^[0-9]+$ && ! "${DIRSTACK[$i]}" = "" ]]; then
             popd +$i >/dev/null
@@ -55,7 +55,7 @@ __dirstack::delete() {
 }
 
 # prepend $PWD to relative pathes like ./<PATH> or <PATH>
-__dirstack::prependpwd() {
+_d::prependpwd() {
     local path="$*"
     if [[ $path =~ ^\. ]]; then
         path=${path/./$PWD}
@@ -66,11 +66,11 @@ __dirstack::prependpwd() {
 }
 
 # add all directories provided via STDIN to $DIRSTACK
-__dirstack::addmany() {
+_d::addmany() {
     local temp_1=$(mktemp)
     local temp_2=$(mktemp)
     while read dirname; do
-        dirname=$(__dirstack::prependpwd "$dirname")
+        dirname=$(_d::prependpwd "$dirname")
         if [[ -d "$dirname" ]]; then
             echo "$dirname"
         fi
@@ -81,62 +81,62 @@ __dirstack::addmany() {
 }
 
 # cd to the nth element in $DIRSTACK
-dirstack::cd() {
+d::cd() {
     (( ${#*} == 0 )) && { cd $HOME; return 0; }
     local err_msg=
     local err_regexp=".+$1:(.+)(out.+range)$"
     local dir_tilde_exp=$(dirs -l +$1 2>&1)
     if [[ $dir_tilde_exp =~ $err_regexp ]]; then
         err_msg="ERROR: ${BASH_REMATCH[1]} '$1' ${BASH_REMATCH[2]}"
-        echo -e $(__dirstack::red $err_msg)
+        echo -e $(_d::red $err_msg)
     else
         if [[ -d $dir_tilde_exp ]]; then
             cd $dir_tilde_exp
         else
             err_msg="ERROR: directory '$dir_tilde_exp' does not exist"
-            echo -e $(__dirstack::red $err_msg)
+            echo -e $(_d::red $err_msg)
         fi
     fi
 }
 
 # clears $DIRSTACK and wipes $DIR_STORE
-dirstack::clear() {
+d::clear() {
     dirs -c
     cat /dev/null >$DIR_STORE
 }
 
 # rm nth element from $DIRSTACK and write to $DIR_STORE
-dirstack::delete() { __dirstack::delete $*; dirstack::update; }
+d::delete() { _d::delete $*; d::update; }
 
 # add current directory to $DIRSTACK
-dirstack::add() {
+d::add() {
     if [[ "$PWD" != "$HOME" ]]; then
         awk 'NR > 1' <(dirs -l -p) <(echo $PWD) | sort | uniq >$DIR_STORE
     fi
 }
 
 # add all directories available in $PWD
-dirstack::addmany() {
-    find . -type d -depth 1 | __dirstack::addmany
-    dirstack::update
+d::addmany() {
+    find . -type d -depth 1 | _d::addmany
+    d::update
 }
 
 # update $DIRSTACK from $DIR_STORE
-dirstack::update() { __dirstack::populate "$PWD"; }
+d::update() { _d::populate "$PWD"; }
 
 # list $DIRSTACK and add some color
-dirstack::list() {
+d::list() {
     while read pos dir; do
-        echo -e " $(__dirstack::blue $pos) $dir"
+        echo -e " $(_d::blue $pos) $dir"
     done < <(dirs -v -p | awk 'NR > 1')
 }
 
-alias ${LEADER}l="dirstack::list"
-alias ${LEADER}a="dirstack::add; dirstack::update"
-alias ${LEADER}am="dirstack::addmany"
-alias ${LEADER}g="dirstack::cd"
-alias ${LEADER}c="dirstack::clear"
-alias ${LEADER}u="dirstack::update"
-alias ${LEADER}d="dirstack::delete"
+alias ${LEADER}l="d::list"
+alias ${LEADER}a="d::add; d::update"
+alias ${LEADER}am="d::addmany"
+alias ${LEADER}g="d::cd"
+alias ${LEADER}c="d::clear"
+alias ${LEADER}u="d::update"
+alias ${LEADER}d="d::delete"
 
-dirstack::update
+d::update
