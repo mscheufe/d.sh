@@ -6,7 +6,6 @@ readonly RESET_COL='\033[m'
 readonly COLOR_BLUE='\033[0;34m'
 readonly COLOR_RED='\033[0;31m'
 
-
 _d::blue() { echo -en "$COLOR_BLUE$*$RESET_COL"; }
 _d::red() { echo -en "$COLOR_RED$*$RESET_COL"; }
 
