@@ -9,7 +9,7 @@ readonly COLOR_RED='\033[0;31m'
 _d::blue() { echo -en "$COLOR_BLUE$*$RESET_COL"; }
 _d::red() { echo -en "$COLOR_RED$*$RESET_COL"; }
 
-# reverse path
+# reverses a given path
 # $1=/dir1/dir2/dir3 ->  dir3 dir2 dir1
 # $1=/dir1/space dir2/dir3 ->  dir3 space;dir2 dir1
 _d::reverse_path() {
@@ -57,7 +57,7 @@ _d::uniq_part_of_dir() {
             fi
         done
     done
-    # replace all spaces with ";" to avoid that
+    # replace all spaces with "," to avoid that
     # one dirstack element is treated as two
     echo "${_uniq_dirs[@]// /,}"
 }
