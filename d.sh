@@ -19,7 +19,7 @@ _d::populate() {
             [[ -d "$dir" ]] && pushd "$dir" >/dev/null
         done < <(sort -r $DIR_STORE)
         # add $working_dir to top of $DIRSTACK
-        pushd $working_dir >/dev/null
+        pushd "$working_dir" >/dev/null
         # remove $HOME from bottom of $DIRSTACK
         eval "popd +$(( ${#DIRSTACK[@]} - 1 )) >/dev/null"
     fi
