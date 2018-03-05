@@ -41,7 +41,7 @@ _d::is_unique() {
     echo $_unique
 }
 
-# determines all unique parts of the patch values contained in ("${@}")
+# determines all unique parts of the path values contained in ("${@}")
 _d::uniq_part_of_dir() {
     shift; local _dirstack=("${@}")
     local _uniq_dirs=()
