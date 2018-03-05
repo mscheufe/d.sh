@@ -25,7 +25,7 @@ _d::reverse_path() {
     echo ${_rev_path% }
 }
 
-# ckecks if $1 matches the end path pos $2 in ("$@")
+# ckecks if $1 matches the end of path at pos $2 in ("$@")
 _d::is_unique() {
     local _index=$1; shift
     local _regexp_path="/${1%/}$"; shift
