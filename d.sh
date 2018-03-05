@@ -9,6 +9,59 @@ readonly COLOR_RED='\033[0;31m'
 _d::blue() { echo -en "$COLOR_BLUE$*$RESET_COL"; }
 _d::red() { echo -en "$COLOR_RED$*$RESET_COL"; }
 
+# reverse path
+# $1=/dir1/dir2/dir3 ->  dir3 dir2 dir1
+# $1=/dir1/space dir2/dir3 ->  dir3 space;dir2 dir1
+_d::reverse_path() {
+    local _path=${1#/}
+    local IFS="/"
+    local _split_path=($_path)
+    local _rev_path=
+    for _token in ${_split_path[@]}; do
+        # replace all spaces with "," to avoid that
+        # one path element is treated as two
+        _rev_path="${_token// /,} $_rev_path"
+    done
+    echo ${_rev_path% }
+}
+
+# ckecks if $1 matches the end path pos $2 in ("$@")
+_d::is_unique() {
+    local _index=$1; shift
+    local _regexp_path="/${1%/}$"; shift
+    local _dirstack=("${@}")
+    local _unique=0
+    for _entry in "${_dirstack[@]}"; do
+        if [[ $_entry != ${_dirstack[$_index]} ]]; then
+            if [[ $_entry =~ $_regexp_path ]]; then
+                _unique=1
+            fi
+        fi
+    done
+    echo $_unique
+}
+
+# determines all unique parts of the patch values contained in ("${@}")
+_d::uniq_part_of_dir() {
+    shift; local _dirstack=("${@}")
+    local _uniq_dirs=()
+    for _index in ${!_dirstack[@]}; do
+        local _path_token=
+        for _token in $(_d::reverse_path "${_dirstack[$_index]}"); do
+            # replace "," with space to make matches possible
+            _path_token="${_token//,/ }/$_path_token"
+            local _unique=$(_d::is_unique $_index "$_path_token" "${_dirstack[@]}")
+            if [[ $_unique -eq 0 || ${_dirstack[$_index]}/ = /$_path_token ]]; then
+                _uniq_dirs[${#_uniq_dirs[@]}]=${_path_token%/}
+                break
+            fi
+        done
+    done
+    # replace all spaces with ";" to avoid that
+    # one dirstack element is treated as two
+    echo "${_uniq_dirs[@]// /,}"
+}
+
 # populate $DIRSTACK from $DIR_STORE
 _d::populate() {
     local working_dir=${1:-$HOME}
