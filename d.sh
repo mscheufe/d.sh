@@ -62,11 +62,7 @@ _d::uniq_part_of_dir() {
     echo "${_uniq_dirs[@]// /,}"
 }
 
-_d::uniq_dir_parts() {
-for part in $(_d::uniq_part_of_dir "${DIRSTACK[@]}"); do
-        echo $part
-    done
-}
+_d::uniq_dir_parts() { echo "$(_d::uniq_part_of_dir "${DIRSTACK[@]}")"; }
 
 # populate $DIRSTACK from $DIR_STORE
 _d::populate() {
@@ -139,8 +135,9 @@ _d::addmany() {
 }
 
 _d::get_pos_in_stack() {
+    local dir_name="$*"
     while read _pos _dir; do
-        if [[ $_dir =~ ${1//,/ } ]]; then
+        if [[ $_dir =~ /${dir_name}$ ]]; then
             echo $_pos
             break
         fi
@@ -213,21 +210,13 @@ _d::complete() {
         2)
             # basic command options
             case "$prev" in
-                list)
-                    ;;
-                addcurdir)
-                    ;;
-                addsubdirs)
-                    ;;
                 cd|delete)
-                    local dirs=$(_d::uniq_dir_parts "${DIRSTACK[@]}")
-                    COMPREPLY=($(compgen -W "$dirs" -- "$cur"))
-                    ;;
-                clear)
-                    ;;
-                update)
-                    ;;
-                *)
+                    for i in $(_d::uniq_dir_parts); do
+                        # only reply with completions
+                        if [[ $i =~ ^$cur ]]; then
+                            COMPREPLY+=( "${i//,/\ }" )
+                        fi
+                    done
                     ;;
             esac
             ;;
@@ -237,41 +226,36 @@ _d::complete() {
     esac
 }
 
-        d() {
-            case "$1" in
-                list)
-                    d::listcolor
-                    return 0
-                    ;;
-                addcurdir)
-                    d::add; d::update; return 0
-                    ;;
-                addsubdirs)
-                    d::addmany; return 0
-                    ;;
-                cd|delete)
-                    d::cd $(_d::get_pos_in_stack $2)
-                    ;;
-                clear)
-                    d::clear; return 0
-                    ;;
-                update)
-                    d::update
-                    ;;
-        *)
-            echo -e $(_d::red "Unknown option $1")
+d() {
+    local _cmd=$1; shift
+    case "$_cmd" in
+        list)
+            d::listcolor
+            return 0
             ;;
+        addcurdir)
+            d::add; d::update; return 0
+            ;;
+        addsubdirs)
+            d::addmany; return 0
+            ;;
+        cd)
+            d::cd $(_d::get_pos_in_stack $*)
+            ;;
+        delete)
+            d::delete $(_d::get_pos_in_stack $*)
+            ;;
+        clear)
+            d::clear; return 0
+            ;;
+        update)
+            d::update
+            ;;
+    *)
+        echo -e $(_d::red "Unknown option $1")
+        ;;
     esac
 }
 
 complete -F _d::complete d
-
-alias ${LEADER}l="d::list"
-alias ${LEADER}a="d::add; d::update"
-alias ${LEADER}am="d::addmany"
-alias ${LEADER}g="d::cd"
-alias ${LEADER}c="d::clear"
-alias ${LEADER}u="d::update"
-alias ${LEADER}d="d::delete"
-
 d::update
