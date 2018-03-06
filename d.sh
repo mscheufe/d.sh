@@ -11,7 +11,7 @@ _d::red() { echo -en "$COLOR_RED$*$RESET_COL"; }
 
 # reverses a given path
 # $1=/dir1/dir2/dir3 ->  dir3 dir2 dir1
-# $1=/dir1/space dir2/dir3 ->  dir3 space;dir2 dir1
+# $1=/dir1/space dir2/dir3 ->  dir3 space,dir2 dir1
 _d::reverse_path() {
     local _path=${1#/}
     local IFS="/"
@@ -60,6 +60,12 @@ _d::uniq_part_of_dir() {
     # replace all spaces with "," to avoid that
     # one dirstack element is treated as two
     echo "${_uniq_dirs[@]// /,}"
+}
+
+_d::uniq_dir_parts() {
+for part in $(_d::uniq_part_of_dir "${DIRSTACK[@]}"); do
+        echo $part
+    done
 }
 
 # populate $DIRSTACK from $DIR_STORE
@@ -132,6 +138,15 @@ _d::addmany() {
     mv $temp_2 $DIR_STORE
 }
 
+_d::get_pos_in_stack() {
+    while read _pos _dir; do
+        if [[ $_dir =~ ${1//,/ } ]]; then
+            echo $_pos
+            break
+        fi
+    done < <(d::list)
+}
+
 # cd to the nth element in $DIRSTACK
 d::cd() {
     (( ${#*} == 0 )) && { cd $HOME; return 0; }
@@ -143,7 +158,7 @@ d::cd() {
         echo -e $(_d::red $err_msg)
     else
         if [[ -d $dir_tilde_exp ]]; then
-            cd $dir_tilde_exp
+            cd "$dir_tilde_exp"
         else
             err_msg="ERROR: directory '$dir_tilde_exp' does not exist"
             echo -e $(_d::red $err_msg)
@@ -176,12 +191,80 @@ d::addmany() {
 # update $DIRSTACK from $DIR_STORE
 d::update() { _d::populate "$PWD"; }
 
+# list $DIRSTACK
+d::list() { dirs -v -p | awk 'NR > 1'; }
+
 # list $DIRSTACK and add some color
-d::list() {
+d::listcolor() {
     while read pos dir; do
         echo -e " $(_d::blue $pos) $dir"
-    done < <(dirs -v -p | awk 'NR > 1')
+    done < <(d::list)
+
 }
+
+_d::complete() {
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    local prev="${COMP_WORDS[COMP_CWORD-1]}"
+    local opts="list addcurdir addsubdirs cd clear delete update"
+    case $COMP_CWORD in
+        1)
+            COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+            ;;
+        2)
+            # basic command options
+            case "$prev" in
+                list)
+                    ;;
+                addcurdir)
+                    ;;
+                addsubdirs)
+                    ;;
+                cd|delete)
+                    local dirs=$(_d::uniq_dir_parts "${DIRSTACK[@]}")
+                    COMPREPLY=($(compgen -W "$dirs" -- "$cur"))
+                    ;;
+                clear)
+                    ;;
+                update)
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+}
+
+        d() {
+            case "$1" in
+                list)
+                    d::listcolor
+                    return 0
+                    ;;
+                addcurdir)
+                    d::add; d::update; return 0
+                    ;;
+                addsubdirs)
+                    d::addmany; return 0
+                    ;;
+                cd|delete)
+                    d::cd $(_d::get_pos_in_stack $2)
+                    ;;
+                clear)
+                    d::clear; return 0
+                    ;;
+                update)
+                    d::update
+                    ;;
+        *)
+            echo -e $(_d::red "Unknown option $1")
+            ;;
+    esac
+}
+
+complete -F _d::complete d
 
 alias ${LEADER}l="d::list"
 alias ${LEADER}a="d::add; d::update"
