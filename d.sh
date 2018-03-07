@@ -168,10 +168,7 @@ d::cd() {
 }
 
 # clears $DIRSTACK and wipes $DIR_STORE
-d::clear() {
-    dirs -c
-    cat /dev/null >$DIR_STORE
-}
+d::clear() { dirs -c; cat /dev/null >$DIR_STORE; }
 
 # rm nth element from $DIRSTACK and write to $DIR_STORE
 d::delete() { _d::delete $*; d::update; }
