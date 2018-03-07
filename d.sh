@@ -2,12 +2,14 @@ DIR_STORE=${DIR_STORE:-"${HOME}/.dir_store"}
 LEADER=${LEADER:-","}
 
 # colors
-readonly RESET_COL='\033[m'
-readonly COLOR_BLUE='\033[0;34m'
-readonly COLOR_RED='\033[0;31m'
+readonly D_RESET_COL='\033[m'
+readonly D_COLOR_BLUE='\033[0;34m'
+readonly D_COLOR_RED='\033[0;31m'
+readonly D_COLOR_MAGENTA='\033[0;35m'
 
-_d::blue() { echo -en "$COLOR_BLUE$*$RESET_COL"; }
-_d::red() { echo -en "$COLOR_RED$*$RESET_COL"; }
+_d::blue() { echo -en "$D_COLOR_BLUE$*$D_RESET_COL"; }
+_d::red() { echo -en "$D_COLOR_RED$*$D_RESET_COL"; }
+_d::magenta() { echo -en "$D_COLOR_MAGENTA$*$D_RESET_COL"; }
 
 # reverses a given path
 # $1=/dir1/dir2/dir3 ->  dir3 dir2 dir1
@@ -62,6 +64,7 @@ _d::uniq_part_of_dir() {
     echo "${_uniq_dirs[@]// /,}"
 }
 
+# get all unique parts of the pathes stored in $DIRSTACK
 _d::uniq_dir_parts() { echo "$(_d::uniq_part_of_dir "${DIRSTACK[@]}")"; }
 
 # populate $DIRSTACK from $DIR_STORE
@@ -134,6 +137,7 @@ _d::addmany() {
     mv $temp_2 $DIR_STORE
 }
 
+# returns position of dir_name in $DIRSTACK
 _d::get_pos_in_stack() {
     local dir_name="$*"
     while read _pos _dir; do
@@ -194,27 +198,71 @@ d::list() { dirs -v -p | awk 'NR > 1'; }
 # list $DIRSTACK and add some color
 d::listcolor() {
     while read pos dir; do
-        echo -e " $(_d::blue $pos) $dir"
+        if [[ ${dir/\~/$HOME} = $PWD ]]; then
+            echo -e " $(_d::magenta "<$pos>") $dir"
+        else
+            echo -e "  $(_d::blue $pos)  $dir"
+        fi
     done < <(d::list)
 
 }
 
+# initialized the global assoc. array _d_cmds
+_d::setup_cmd_list() {
+    for k in "${_d_cmd_keys[@]}"; do
+        case $k in
+            list)
+                _d_cmds[$k]="display \$DIRSTACK"
+                ;;
+            cd)
+                _d_cmds[$k]="cd to directory in \$DIRSTACK"
+                ;;
+            add)
+                _d_cmds[$k]="add \$PWD to \$DIRSTACK"
+                ;;
+            addirs)
+                _d_cmds[$k]="add directories in \$PWD to \$DIRSTACK"
+                ;;
+            delete)
+                _d_cmds[$k]="delete directory from \$DIRSTACK"
+                ;;
+            update)
+                _d_cmds[$k]="read \$DIR_STORE and update \$DIRSTACK"
+                ;;
+            clear)
+                _d_cmds[$k]="wipe \$DIRSTACK and \$DIR_STORE"
+                ;;
+        esac
+    done
+}
+
+# completion function
 _d::complete() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
-    local opts="list addcurdir addsubdirs cd clear delete update"
     case $COMP_CWORD in
         1)
-            COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+            local i=0
+            if [[ -n $cur ]]; then
+                for k in "${!_d_cmds[@]}"; do
+                    if [[ "$k" =~ ^$cur ]]; then
+                        COMPREPLY[i++]=$k
+                    fi
+                done
+            else
+                for k in "${_d_cmd_keys[@]}"; do
+                    printf -v _cmd_desc "%-15s%s" $k "${_d_cmds[$k]}"
+                    printf -v 'COMPREPLY[i++]' '%-*s' $COLUMNS "$_cmd_desc"
+                done
+            fi
             ;;
         2)
-            # basic command options
             case "$prev" in
                 cd|delete)
-                    for i in $(_d::uniq_dir_parts); do
-                        # only reply with completions
-                        if [[ $i =~ ^$cur ]]; then
-                            COMPREPLY+=( "${i//,/\ }" )
+                    local _dirs=($(_d::uniq_dir_parts))
+                    for i in ${!_dirs[@]}; do
+                        if [[ ${_dirs[$i]} =~ ^$cur ]]; then
+                            printf -v 'COMPREPLY[$i]' '%-*s' $COLUMNS "${_dirs[$i]//,/ }"
                         fi
                     done
                     ;;
@@ -226,6 +274,7 @@ _d::complete() {
     esac
 }
 
+# main functions to easy navigate $DIRSTACK
 d() {
     local _cmd=$1; shift
     case "$_cmd" in
@@ -233,10 +282,10 @@ d() {
             d::listcolor
             return 0
             ;;
-        addcurdir)
+        add)
             d::add; d::update; return 0
             ;;
-        addsubdirs)
+        addirs)
             d::addmany; return 0
             ;;
         cd)
@@ -257,5 +306,11 @@ d() {
     esac
 }
 
-complete -F _d::complete d
+# setup the environment
+unset _d_cmd_keys
+_d_cmd_keys=("list" "cd" "add" "addirs" "delete" "update" "clear")
+unset _d_cmds
+declare -A _d_cmds
+_d::setup_cmd_list
+complete -o nosort -F _d::complete d
 d::update
