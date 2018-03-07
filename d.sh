@@ -78,13 +78,13 @@ _d::populate() {
         done < <(sort -r $DIR_STORE)
         # add $working_dir to top of $DIRSTACK
         pushd "$working_dir" >/dev/null
-        # remove $HOME from bottom of $DIRSTACK
+        # remove last entry from $DIRSTACK ($working_dir)
         eval "popd +$(( ${#DIRSTACK[@]} - 1 )) >/dev/null"
     fi
 }
 
 # sort numeric parameters in desc order
-_d::sort() { echo "$*" | tr " " "\n" | sort -nr | tr "\n" " "; }
+_d::sort() { local _s=$(echo "$*" | tr " " "\n" | sort -nr | tr "\n" " "); echo ${_s# }; }
 
 # parameter lists like 6 0 1-5 are expanded and sorted to 6 5 4 3 2 1
 _d::expandparams() {
@@ -153,15 +153,15 @@ d::cd() {
     (( ${#*} == 0 )) && { cd $HOME; return 0; }
     local err_msg=
     local err_regexp=".+$1:(.+)(out.+range)$"
-    local dir_tilde_exp=$(dirs -l +$1 2>&1)
-    if [[ $dir_tilde_exp =~ $err_regexp ]]; then
+    local dir_tilde_expanded=$(dirs -l +$1 2>&1)
+    if [[ $dir_tilde_expanded =~ $err_regexp ]]; then
         err_msg="ERROR: ${BASH_REMATCH[1]} '$1' ${BASH_REMATCH[2]}"
         echo -e $(_d::red $err_msg)
     else
-        if [[ -d $dir_tilde_exp ]]; then
-            cd "$dir_tilde_exp"
+        if [[ -d $dir_tilde_expanded ]]; then
+            cd "$dir_tilde_expanded"
         else
-            err_msg="ERROR: directory '$dir_tilde_exp' does not exist"
+            err_msg="ERROR: directory '$dir_tilde_expanded' does not exist"
             echo -e $(_d::red $err_msg)
         fi
     fi
