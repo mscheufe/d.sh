@@ -2,7 +2,7 @@ source ./assert.sh
 source ../d.sh
 
 # DISCOVERONLY=1
-DEBUG=1
+DEBUG=0
 STOP=1
 
 set_up_general() {
@@ -47,6 +47,14 @@ set_up_populate() {
 
 print_info() {
     (( $DEBUG )) && echo -e "$*"
+}
+
+c_randdir_home() {
+    local rand_fname=$(mktemp -t ".d.sh")
+    rm $rand_fname
+    local rand_dir="${HOME}/${rand_fname##*/}"
+    mkdir "$rand_dir"
+    echo "$rand_dir"
 }
 
 print_info "testing _d::reverse_path"
@@ -130,6 +138,31 @@ for d in ${TMPDIR}/{dir1,dir2}; do
     _d::populate $PWD
     assert "echo $(d::list | tail -1 | awk '{print $2}')" "$d"
 done
+tear_down $TMPDIR
+
+print_info "\ntesting d::cd"
+set_up_general
+# cd from $TMPDIR to $HOME (d::cd with no argument
+cd $TMPDIR
+d::cd
+assert "echo $PWD" "$HOME"
+
+# create a tempdir in $HOME; add it to $DIRSTACK; cd to $HOME and back into it
+tmpdir_in_home="$(c_randdir_home)"
+cd "$tmpdir_in_home"
+d::add; d::update
+d::cd
+d::cd 1
+assert "echo $PWD" "$tmpdir_in_home"
+
+# cd into $HOME rm tmpdir and try to cd back to into
+d::cd
+rmdir "$tmpdir_in_home"
+assert_raises "d::cd 1 | grep \"does not exist\"" 0
+
+# make sure that out of range error is handled properly
+assert_raises "d::cd 10 | grep \"out of range\"" 0
+
 tear_down $TMPDIR
 
 assert_end "tests"
