@@ -246,7 +246,7 @@ _d::complete() {
             else
                 for k in "${_d_cmd_keys[@]}"; do
                     printf -v _cmd_desc "%-15s%s" $k "${_d_cmds[$k]}"
-                    printf -v 'COMPREPLY[i++]' '%-*s' $COLUMNS "$_cmd_desc"
+                    printf -v "COMPREPLY[i++]" "%-*s" $COLUMNS "$_cmd_desc"
                 done
             fi
             ;;
@@ -256,7 +256,7 @@ _d::complete() {
                     local _dirs=($(_d::uniq_dir_parts))
                     for i in ${!_dirs[@]}; do
                         if [[ ${_dirs[$i]} =~ ^$cur ]]; then
-                            printf -v 'COMPREPLY[$i]' '%-*s' $COLUMNS "${_dirs[$i]//,/ }"
+                            printf -v "COMPREPLY[$i]" "%-*s" $COLUMNS "${_dirs[$i]//,/ }"
                         fi
                     done
                     ;;
