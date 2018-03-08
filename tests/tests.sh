@@ -1,5 +1,5 @@
 source ./assert.sh
-source ./d.sh
+source ../d.sh
 
 # DISCOVERONLY=1
 DEBUG=1
