@@ -108,7 +108,7 @@ _d::delete() {
             popd +$i >/dev/null
         fi
     done
-    dirs -l -p | awk 'NR > 1' | sort >$DIR_STORE
+    dirs -l -p | awk 'NR > 1' >$DIR_STORE
 }
 
 # prepend $PWD to relative pathes like ./<PATH> or <PATH>
@@ -181,10 +181,7 @@ d::add() {
 }
 
 # add all directories available in $PWD
-d::addmany() {
-    find . -type d -depth 1 | _d::addmany
-    d::update
-}
+d::addmany() { find . -type d -depth 1 | _d::addmany; }
 
 # update $DIRSTACK from $DIR_STORE
 d::update() { _d::populate "$PWD"; }
@@ -283,7 +280,7 @@ d() {
             d::add; d::update; return 0
             ;;
         addirs)
-            d::addmany; return 0
+            d::addmany; d::update;  return 0
             ;;
         cd)
             d::cd $(_d::get_pos_in_stack $*)
