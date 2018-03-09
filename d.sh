@@ -19,14 +19,13 @@ _d::magenta() { echo -en "$D_COLOR_MAGENTA$*$D_RESET_COL"; }
 # $1=/dir1/dir2/dir3 ->  dir3 dir2 dir1
 # $1=/dir1/space dir2/dir3 ->  dir3 space,dir2 dir1
 _d::reverse_path() {
+    # replace all spaces with a ,
     local _path=${1// /,}
     local _split_path
     local _rev_path
     read -ra _split_path <<< "$(tr "/" " " <<< "${_path#/}")"
     for _token in "${_split_path[@]}"; do
-        # replace all spaces with "," to avoid that
-        # one path element is treated as two
-        _rev_path="${_token// /,} $_rev_path"
+        _rev_path="$_token $_rev_path"
     done
     echo "${_rev_path% }"
 }
