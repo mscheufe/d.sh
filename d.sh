@@ -12,6 +12,9 @@ _d::blue() { echo -en "$D_COLOR_BLUE$*$D_RESET_COL"; }
 _d::red() { echo -en "$D_COLOR_RED$*$D_RESET_COL"; }
 _d::magenta() { echo -en "$D_COLOR_MAGENTA$*$D_RESET_COL"; }
 
+# bash version 4 is required
+[[ ${BASH_VERSION:0:1} -lt 4 ]] && { echo -e "$(_d::red "bash version 4 is required")"; exit 1; }
+
 # reverses a given path
 # $1=/dir1/dir2/dir3 ->  dir3 dir2 dir1
 # $1=/dir1/space dir2/dir3 ->  dir3 space,dir2 dir1
