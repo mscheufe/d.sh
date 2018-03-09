@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 DIR_STORE=${DIR_STORE:-"${HOME}/.dir_store"}
-LEADER=${LEADER:-","}
+LEADER=${LEADER:-"d"}
 
 # colors
 readonly D_RESET_COL='\033[m'
@@ -319,4 +319,4 @@ declare -A _d_cmds
 _d::setup_cmd_list
 complete -o nosort -F _d::complete d
 d::update
-alias d="d::main"
+alias "$LEADER"="d::main"
