@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 DIR_STORE=${DIR_STORE:-"${HOME}/.dir_store"}
 LEADER=${LEADER:-","}
 
@@ -15,12 +16,11 @@ _d::magenta() { echo -en "$D_COLOR_MAGENTA$*$D_RESET_COL"; }
 # $1=/dir1/dir2/dir3 ->  dir3 dir2 dir1
 # $1=/dir1/space dir2/dir3 ->  dir3 space,dir2 dir1
 _d::reverse_path() {
-    local _path=${1#/}
-    local IFS="/"
+    local _path=${1// /,}
     local _split_path
     local _rev_path
-    _split_path=("$_path")
-    for _token in ${_split_path[@]}; do
+    read -ra _split_path <<< "$(tr "/" " " <<< "${_path#/}")"
+    for _token in "${_split_path[@]}"; do
         # replace all spaces with "," to avoid that
         # one path element is treated as two
         _rev_path="${_token// /,} $_rev_path"
@@ -48,7 +48,7 @@ _d::is_unique() {
 _d::uniq_part_of_dir() {
     shift; local _dirstack=("${@}")
     local _uniq_dirs=()
-    for _index in ${!_dirstack[@]}; do
+    for _index in "${!_dirstack[@]}"; do
         local _path_token=
         local _unique=
         for _token in $(_d::reverse_path "${_dirstack[$_index]}"); do
@@ -86,28 +86,31 @@ _d::populate() {
 }
 
 # sort numeric parameters in desc order
-_d::sort() { local _s= ;_s=$(echo "$*" | tr " " "\\n" | sort -nr | tr "\\n" " "); echo "${_s:0:${#_s}-1}";}
+_d::sort() { local _s= ;_s=$(echo "$*" | tr " " "\\n" | sort -nr | tr "\\n" " "); echo -n "${_s% }"; }
 
 # parameter lists like 6 0 1-5 are expanded and sorted to 6 5 4 3 2 1
 _d::expandparams() {
-    local _exp_params=""
-    for i in $*; do
+    local _exp_params=
+    local _params=
+    read -ra _params <<<"$1"
+    for i in "${_params[@]}"; do
         if [[ $i =~ ^([0-9]+)-([0-9]+)$ ]]; then
-            local _values=$(eval "echo {${BASH_REMATCH[1]}..${BASH_REMATCH[2]}}")
+            local _values=
+            _values=$(eval "echo {${BASH_REMATCH[1]}..${BASH_REMATCH[2]}}")
             _exp_params="$_exp_params $_values"
         else
             _exp_params="$_exp_params $i"
         fi
     done
-    _d::sort $_exp_params
+    _d::sort "${_exp_params# }"
 }
 
 # rm nth element from $DIRSTACK
 _d::delete() {
-    params=$(_d::expandparams $*)
+    params=$(_d::expandparams "$*")
     for i in $params; do
         if [[ $i =~ ^[0-9]+$ && ! "${DIRSTACK[$i]}" = "" ]]; then
-            popd +$i >/dev/null
+            popd "+$i" >/dev/null
         fi
     done
     dirs -l -p | awk 'NR > 1' >"$DIR_STORE"
@@ -154,7 +157,7 @@ _d::get_pos_in_stack() {
 
 # cd to the nth element in $DIRSTACK
 d::cd() {
-    (( ${#*} == 0 )) && { cd $HOME; return 0; }
+    (( ${#*} == 0 )) && { cd "$HOME"; return 0; }
     local err_msg=
     local err_regexp=".+$1:(.+)(out.+range)$"
     local dir_tilde_expanded=
@@ -176,7 +179,7 @@ d::cd() {
 d::clear() { dirs -c; cat /dev/null >"$DIR_STORE"; }
 
 # rm nth element from $DIRSTACK and write to $DIR_STORE
-d::delete() { _d::delete $*; d::update; }
+d::delete() { _d::delete "$*"; d::update; }
 
 # add current directory to $DIRSTACK
 d::add() {
@@ -186,7 +189,7 @@ d::add() {
 }
 
 # add all directories available in $PWD
-d::addmany() { find . -type d -depth 1 | _d::addmany; }
+d::addmany() { find . -type "d" -depth 1 | _d::addmany; }
 
 # update $DIRSTACK from $DIR_STORE
 d::update() { _d::populate "$PWD"; }
@@ -258,8 +261,9 @@ _d::complete() {
         2)
             case "$prev" in
                 cd|delete)
-                    local _dirs=($(_d::uniq_dir_parts))
-                    for i in ${!_dirs[@]}; do
+                    local _dirs
+                    read -ra _dirs <<< "$(_d::uniq_dir_parts)"
+                    for i in "${!_dirs[@]}"; do
                         if [[ ${_dirs[$i]} =~ ^$cur ]]; then
                             printf -v "COMPREPLY[$i]" "%-*s" $COLUMNS "${_dirs[$i]//,/ }"
                         fi
@@ -274,7 +278,7 @@ _d::complete() {
 }
 
 # main functions to easy navigate $DIRSTACK
-d() {
+d::main() {
     local _cmd=$1; shift
     case "$_cmd" in
         list)
@@ -313,3 +317,4 @@ declare -A _d_cmds
 _d::setup_cmd_list
 complete -o nosort -F _d::complete d
 d::update
+alias d="d::main"
