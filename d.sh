@@ -159,7 +159,7 @@ _d::get_pos_in_stack() {
 
 # cd to the nth element in $DIRSTACK
 d::cd() {
-    (( ${#*} == 0 )) && { cd "$HOME"; return 0; }
+    [[ "$*" = "" ]] && { cd "$HOME"; return 0; }
     local err_msg=
     local err_regexp=".+$1:(.+)(out.+range)$"
     local dir_tilde_expanded=
