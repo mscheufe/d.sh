@@ -270,7 +270,7 @@ _d::complete() {
                     local _dirs
                     read -ra _dirs <<< "$(_d::uniq_dir_parts)"
                     for i in "${!_dirs[@]}"; do
-                        if [[ ${_dirs[$i]} =~ ^$cur ]]; then
+                        if [[ ${_dirs[$i]} =~ ^${cur//./\\.} ]]; then
                             printf -v "COMPREPLY[$i]" "%-*s" $COLUMNS "${_dirs[$i]//,/ }"
                         fi
                     done
