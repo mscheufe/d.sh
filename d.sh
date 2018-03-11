@@ -220,7 +220,7 @@ _d::setup_cmd_list() {
                 _d_cmds[$k]="display \$DIRSTACK"
                 ;;
             cd)
-                _d_cmds[$k]="cd to directory in \$DIRSTACK"
+                _d_cmds[$k]="cd to th directory in \$DIRSTACK <tab complete>"
                 ;;
             add)
                 _d_cmds[$k]="add \$PWD to \$DIRSTACK"
@@ -228,8 +228,11 @@ _d::setup_cmd_list() {
             addirs)
                 _d_cmds[$k]="add directories in \$PWD to \$DIRSTACK"
                 ;;
-            delete)
-                _d_cmds[$k]="delete directory from \$DIRSTACK"
+            del_byname)
+                _d_cmds[$k]="delete directory from \$DIRSTACK by name <tab complete>"
+                ;;
+            del_byindex)
+                _d_cmds[$k]="delete directory from \$DIRSTACK by index"
                 ;;
             update)
                 _d_cmds[$k]="read \$DIR_STORE and update \$DIRSTACK"
@@ -263,7 +266,7 @@ _d::complete() {
             ;;
         2)
             case "$prev" in
-                cd|delete)
+                cd|del_byname)
                     local _dirs
                     read -ra _dirs <<< "$(_d::uniq_dir_parts)"
                     for i in "${!_dirs[@]}"; do
@@ -297,8 +300,11 @@ d::main() {
         cd)
             d::cd "$(_d::get_pos_in_stack "$*")"
             ;;
-        delete)
+        del_byname)
             d::delete "$(_d::get_pos_in_stack "$*")"
+            ;;
+        del_byindex)
+            d::delete "$*"
             ;;
         clear)
             d::clear; return 0
@@ -314,7 +320,7 @@ d::main() {
 
 # setup the environment
 unset _d_cmd_keys
-_d_cmd_keys=("list" "cd" "add" "addirs" "delete" "update" "clear")
+_d_cmd_keys=("list" "cd" "add" "addirs" "del_byname" "del_byindex" "update" "clear")
 unset _d_cmds
 declare -A _d_cmds
 _d::setup_cmd_list
