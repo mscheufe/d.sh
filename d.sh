@@ -204,9 +204,9 @@ d::list() { dirs -v -p | awk 'NR > 1'; }
 d::listcolor() {
     while read -r pos dir; do
         if [[ ${dir/\~/$HOME} = "$PWD" ]]; then
-            printf "%-15b %s\n" "$(_d::magenta "<$pos>")" "$dir"
+            printf "%-15b %s\\n" "$(_d::magenta "<$pos>")" "$dir"
         else
-            printf "%-15b %s\n" "$(_d::blue "$pos")"  "$dir"
+            printf "%-15b %s\\n" "$(_d::blue "$pos")"  "$dir"
         fi
     done < <(d::list)
 
