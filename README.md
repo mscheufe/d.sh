@@ -2,6 +2,7 @@
 
 ## Description
 **d.sh** makes it easy to navigate the `$DIRSTACK` array in bash. It provides convenience functions to add/delete directories and to list the contents of `$DIRSTACK`.  
+  
 **d.sh** supports tab completion. To see all possible commands type `d<space><tab><tab>`  
 
 ```
