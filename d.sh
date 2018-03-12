@@ -323,6 +323,6 @@ _d_cmd_keys=("list" "cd" "add" "addirs" "del_byname" "del_byindex" "update" "cle
 unset _d_cmds
 declare -A _d_cmds
 _d::setup_cmd_list
-complete -o nosort -F _d::complete d
+eval "alias $LEADER=d::main"
+complete -o nosort -F _d::complete "$LEADER"
 d::update
-alias "$LEADER"="d::main"
