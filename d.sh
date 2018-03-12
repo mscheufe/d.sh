@@ -101,7 +101,7 @@ _d::expandparams() {
             _values=$(eval "echo {${BASH_REMATCH[1]}..${BASH_REMATCH[2]}}")
             _exp_params="$_exp_params $_values"
         else
-            _exp_params="$_exp_params $i"
+            [[ $i =~ ^[0-9]+$ ]] && _exp_params="$_exp_params $i"
         fi
     done
     _d::sort "${_exp_params# }"
@@ -209,7 +209,6 @@ d::listcolor() {
             printf "%-15b %s\\n" "$(_d::blue "$pos")"  "$dir"
         fi
     done < <(d::list)
-
 }
 
 # initialized the global assoc. array _d_cmds

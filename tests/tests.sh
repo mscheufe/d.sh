@@ -89,6 +89,8 @@ assert "_d::sort \"3 10 4 1 2 6 5 7 9 8\"" "10 9 8 7 6 5 4 3 2 1"
 
 print_info "\\ntesting _d::expandparams"
 assert "_d::expandparams \"3 2 1 7-9 6 4-5 10\"" "10 9 8 7 6 5 4 3 2 1"
+assert "_d::expandparams \"3 2 1 9-7 6 4-5 10\"" "10 9 8 7 6 5 4 3 2 1"
+assert "_d::expandparams \"3 2 a 1 9-7 6 4-5 b 10\"" "10 9 8 7 6 5 4 3 2 1"
 assert "_d::expandparams \"1\"" "1"
 
 print_info "\\ntesting _d::prependpwd"
