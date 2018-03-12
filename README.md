@@ -19,6 +19,7 @@ clear          wipe $DIRSTACK and $DIR_STORE
 For a better tab completion experience, the `d cd` command only displays the
 last subdirectory name. If the last subdirectory name is not unique all the
 parent directory names, required to make a unique identifier, are displayed.
+Running `d cd` with no parameter changes into the `$HOME` directory.
 
 The `d del_byindex` command accepts index numbers to delete directories from
 `$DIRSTACK`.  It is also possible to provide a list of index numbers ordered or
