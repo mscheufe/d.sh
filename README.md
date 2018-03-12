@@ -1,7 +1,7 @@
 # d.sh
 
 ## Description
-**d.sh** makes use of the `$DIRSTACK` array in bash to easy add, delete and navigate directories.  
+**d.sh** makes it easy to navigate the `$DIRSTACK` array in bash. It provides convenience functions to add/delete directories and to list the contents of `$DIRSTACK`.  
 **d.sh** supports tab completion. To see all possible commands type `d<space><tab><tab>`  
 
 ```
@@ -16,9 +16,9 @@ clear          wipe $DIRSTACK and $DIR_STORE
 ```
 
 ### Additional information
-For a better tab completion experience the `d cd` command only displays the
-last sub directory name. If the last sub directory name is not unique all the
-parent directory names, required to make an unique identifier, are displayed.
+For a better tab completion experience, the `d cd` command only displays the
+last subdirectory name. If the last subdirectory name is not unique all the
+parent directory names, required to make a unique identifier, are displayed.
 
 The `d del_byindex` command accepts index numbers to delete directories from
 `$DIRSTACK`.  It is also possible to provide a list of index numbers ordered or
