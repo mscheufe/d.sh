@@ -35,6 +35,8 @@ The following are all valid `d del_byindex` commands:
 * `d del_byindex 2 4-6 1 3`
 * `d del_byindex 2 6-4 1 3`
 
+![d.sh in action](https://raw.githubusercontent.com/mscheufe/d.sh/master/screenshots/dsh_inaction.gif)
+
 ## Installation
 Download the bash script
 
