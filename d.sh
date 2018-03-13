@@ -158,6 +158,9 @@ _d::get_pos_in_stack() {
     done < <(d::list)
 }
 
+# convert $BASH_VERSION to int
+_d::bash_ver_toint() { local _ver="${BASH_VERSION::6}"; echo "${_ver//./}"; }
+
 # cd to the nth element in $DIRSTACK
 d::cd() {
     [[ "$*" = "" ]] && { cd "$HOME"; return 0; }
@@ -324,5 +327,9 @@ unset _d_cmds
 declare -A _d_cmds
 _d::setup_cmd_list
 eval "alias $LEADER=d::main"
-complete -o nosort -F _d::complete "$LEADER"
+if (( $(_d::bash_ver_toint "$BASH_VERSION") >= 4418 )); then
+    complete -o nosort -F _d::complete "$LEADER"
+else
+    complete -F _d::complete "$LEADER"
+fi
 d::update
