@@ -1,4 +1,4 @@
-# d.sh
+# d.sh [![Build Status](https://travis-ci.org/mscheufe/dsh.svg?branch=master)](https://travis-ci.org/mscheufe/dsh)
 
 ## Description
 **d.sh** makes it easy to navigate the `$DIRSTACK` array in bash. It provides convenience functions to add/delete directories and to list the contents of `$DIRSTACK`.  
