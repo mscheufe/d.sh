@@ -52,7 +52,7 @@ print_info() {
 
 c_randdir_home() {
     local rand_fname=
-    rand_fname=$(mktemp -t ".d.sh")
+    rand_fname=$(mktemp)
     rm "$rand_fname"
     local rand_dir="${HOME}/${rand_fname##*/}"
     mkdir "$rand_dir"

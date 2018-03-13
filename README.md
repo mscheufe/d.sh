@@ -1,4 +1,4 @@
-# d.sh
+# d.sh [![Build Status](https://travis-ci.org/mscheufe/dsh.svg?branch=master)](https://travis-ci.org/mscheufe/dsh)
 
 ## Description
 **d.sh** makes it easy to navigate the `$DIRSTACK` array in bash. It provides convenience functions to add/delete directories and to list the contents of `$DIRSTACK`.  
@@ -46,15 +46,14 @@ Source it in your .bashrc
 
 `source ~/.d.sh`
 
-By default d.sh binds the function d::main to the key "d" by adding an alias to
-the environment.  In case you want to bind it to something else add the
-environment variable LEADER with your preferred key.
-
-To bind it to another key like for instance "," add the below two lines to your .bashrc.
+By default **d.sh** creates `d` as an alias to invoke the program. The alias can be changed by defining
+the environment variable LEADER.
+  
+To map it to another character, like for instance a comma, add the below two lines to your .bashrc.
 
 ```
 export LEADER=,
 source ~/.d.sh
 ```
 
-Now you can use it with "," as key `,<space><tab><tab>`.
+Now you can use it with `,` as key `,<space><tab><tab>`.
