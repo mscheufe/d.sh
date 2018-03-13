@@ -192,7 +192,7 @@ d::add() {
 }
 
 # add all directories available in $PWD
-d::addmany() { find . -type "d" -depth 1 | _d::addmany; }
+d::addmany() { find "$PWD" -maxdepth "1" -mindepth "1" -type "d" | _d::addmany; }
 
 # update $DIRSTACK from $DIR_STORE
 d::update() { _d::populate "$PWD"; }
