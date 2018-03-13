@@ -2,8 +2,6 @@ all: lint test
 
 lint:
 	@echo "Running shellcheck"
-	@echo $(PWD)
-	@ls
 	@bash -c "tests/lint.sh" || exit 1
 
 test:
