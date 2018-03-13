@@ -56,4 +56,4 @@ export LEADER=,
 source ~/.d.sh
 ```
 
-Now you can use it with `,` as key `,<space><tab><tab>`.
+Now you can use it with `,` as key `,<space><tab><tab>`
