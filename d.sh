@@ -161,6 +161,17 @@ _d::get_pos_in_stack() {
 # convert $BASH_VERSION to int
 _d::bash_ver_toint() { local _ver="${BASH_VERSION::6}"; echo "${_ver//./}"; }
 
+# split directory path into its subdirectories
+_d::split_into_subdirs() { local _a="${1#/}"; _a=${_a%/}; echo -e "${_a//\//\\n}"; }
+
+# trims path $1 that it ends with subdirectory $2
+_d::trim_path() {
+    local _parent=${1%/*}
+    [[ -z "$_parent" ]] && return 0
+    [[ "${_parent##*/}" = "$2" ]] && { echo "$_parent"; return 0; }
+    _d::trim_path "$_parent" "$2"
+}
+
 # cd to the nth element in $DIRSTACK
 d::cd() {
     [[ "$*" = "" ]] && { cd "$HOME"; return 0; }
@@ -203,6 +214,8 @@ d::update() { _d::populate "$PWD"; }
 # list $DIRSTACK
 d::list() { dirs -v -p | awk 'NR > 1'; }
 
+d::up() { cd "$(_d::trim_path "$PWD" "$*")"; }
+
 # list $DIRSTACK and add some color
 d::listcolor() {
     while read -r pos dir; do
@@ -223,6 +236,9 @@ _d::setup_cmd_list() {
                 ;;
             cd)
                 _d_cmds[$k]="cd to th directory in \$DIRSTACK <tab complete>"
+                ;;
+            up)
+                _d_cmds[$k]="go to a parent directory of \$PWD <tab complete>"
                 ;;
             add)
                 _d_cmds[$k]="add \$PWD to \$DIRSTACK"
@@ -277,6 +293,14 @@ _d::complete() {
                         fi
                     done
                     ;;
+                up)
+                    local i=0
+                    while read -r _subdir; do
+                        if [[ $_subdir =~ ^$cur ]]; then
+                            printf -v "COMPREPLY[i++]" "%s" "$_subdir"
+                        fi
+                    done < <(_d::split_into_subdirs "${PWD%/*}")
+                    ;;
             esac
             ;;
         *)
@@ -302,6 +326,9 @@ d::main() {
         cd)
             d::cd "$(_d::get_pos_in_stack "$*")"
             ;;
+        up)
+            d::up "$*"
+            ;;
         del_byname)
             d::delete "$(_d::get_pos_in_stack "$*")"
             ;;
@@ -322,7 +349,7 @@ d::main() {
 
 # setup the environment
 unset _d_cmd_keys
-_d_cmd_keys=("list" "cd" "add" "addirs" "del_byname" "del_byindex" "update" "clear")
+_d_cmd_keys=("list" "cd" "up" "add" "addirs" "del_byname" "del_byindex" "update" "clear")
 unset _d_cmds
 declare -A _d_cmds
 _d::setup_cmd_list
