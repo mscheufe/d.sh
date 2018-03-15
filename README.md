@@ -8,6 +8,7 @@
 ```
 list           display $DIRSTACK
 cd             cd to th directory in $DIRSTACK <tab complete>
+up             go to a parent directory of $PWD <tab complete>
 add            add $PWD to $DIRSTACK
 addirs         add directories in $PWD to $DIRSTACK
 del_byname     delete directory from $DIRSTACK by name <tab complete>
@@ -21,6 +22,10 @@ For a better tab completion experience, the `d cd` command only displays the
 last subdirectory name. If the last subdirectory name is not unique all the
 parent directory names, required to make a unique identifier, are displayed.
 Running `d cd` with no parameter changes into the `$HOME` directory.
+
+The `d up` command shows all subdirectories of `$PWD` for tab completion.
+Selecting a subdirectory causes `d.sh` to `cd` into it. This works for every
+directory not only the ones that are part of `$DIRSTACK`.
 
 The `d del_byindex` command accepts index numbers to delete directories from
 `$DIRSTACK`.  It is also possible to provide a list of index numbers ordered or
