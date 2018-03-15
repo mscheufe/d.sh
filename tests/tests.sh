@@ -63,7 +63,7 @@ print_info "testing _d::reverse_path"
 assert "_d::reverse_path /dir1/dir2/dir3" "dir3 dir2 dir1"
 assert "_d::reverse_path \"/dir1/dir2 space/dir3\"" "dir3 dir2,space dir1"
 
-print_info "\\ntesting _dd:is_unique"
+print_info "\\ntesting _dd::is_unique"
 _dirstack=(/dir1/tmp /dir1/dir2/tmp /dir1/dirX)
 _result=$(_d::is_unique 0 tmp "${_dirstack[@]}")
 assert "echo $_result" 1
