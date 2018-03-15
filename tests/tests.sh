@@ -169,4 +169,14 @@ assert_raises "d::cd 10 | grep \"out of range\"" 0
 
 tear_down "$TMPDIR"
 
+# test splitting into subdirectories
+print_info "\\ntesting _d::split_into_subdirs"
+assert "_d::split_into_subdirs /dir0/dir1/dir2/dir3" "dir0\\ndir1\\ndir2\\ndir3\\n"
+
+# test _d::trim_path
+print_info "\\ntesting _d::trim_path"
+assert "_d::trim_path /dir0/dir1/dir2/dir3 dir1" "/dir0/dir1"
+assert "_d::trim_path /dir0/dir1/dir2/dir3 dir0" "/dir0"
+assert "_d::trim_path /dir0/dir1/dir2/dir3 dirx" ""
+
 assert_end "tests"
