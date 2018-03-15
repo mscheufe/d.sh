@@ -71,6 +71,7 @@ c_randdir_home() {
 
 print_info "testing _d::reverse_path"
 assert "concat _d::reverse_path / /dir1/dir2/dir3" "/dir3/dir2/dir1"
+assert "concat _d::reverse_path / /dir1/dir2/dir3/" "/dir3/dir2/dir1"
 assert "concat _d::reverse_path / \"/dir1/dir2 space/dir3\"" "/dir3/dir2 space/dir1"
 
 print_info "\\ntesting _dd::is_unique"
