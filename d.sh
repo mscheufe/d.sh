@@ -15,19 +15,12 @@ _d::magenta() { echo -en "$D_COLOR_MAGENTA$*$D_RESET_COL"; }
 # bash version 4 is required
 [[ ${BASH_VERSION:0:1} -lt 4 ]] && { echo -e "$(_d::red "bash version 4 is required")"; exit 1; }
 
-# reverses a given path
-# $1=/dir1/dir2/dir3 ->  dir3 dir2 dir1
-# $1=/dir1/space dir2/dir3 ->  dir3 space,dir2 dir1
+# reverse a path string
+# /dir0/dir1/dir2 => dir2\\ndir1\\ndir0\\n
 _d::reverse_path() {
-    # replace all spaces with a ,
-    local _path=${1// /,}
-    local _split_path
-    local _rev_path
-    read -ra _split_path <<< "$(tr "/" " " <<< "${_path#/}")"
-    for _token in "${_split_path[@]}"; do
-        _rev_path="$_token $_rev_path"
-    done
-    echo "${_rev_path% }"
+    echo -en "${1##*/}\\n"
+    [[ -z "${1%/*}" ]] && return 1
+    _d::reverse_path "${1%/*}"
 }
 
 # ckecks if $1 matches the end of path at pos $2 in ("$@")
@@ -53,19 +46,16 @@ _d::uniq_part_of_dir() {
     for _index in "${!_dirstack[@]}"; do
         local _path_token=
         local _unique=
-        for _token in $(_d::reverse_path "${_dirstack[$_index]}"); do
-            # replace "," with space to make matches possible
-            _path_token="${_token//,/ }/$_path_token"
+        while read -r _token; do
+            _path_token="$_token/$_path_token"
             _unique=$(_d::is_unique "$_index" "$_path_token" "${_dirstack[@]}")
             if [[ $_unique -eq 0 || ${_dirstack[$_index]}/ = /$_path_token ]]; then
                 _uniq_dirs[${#_uniq_dirs[@]}]=${_path_token%/}
                 break
             fi
-        done
+        done < <(_d::reverse_path "${_dirstack[$_index]}")
     done
-    # replace all spaces with "," to avoid that
-    # one dirstack element is treated as two
-    echo "${_uniq_dirs[@]// /,}"
+    for _dir in "${_uniq_dirs[@]}"; do echo "$_dir"; done
 }
 
 # get all unique parts of the pathes stored in $DIRSTACK
@@ -285,13 +275,12 @@ _d::complete() {
         2)
             case "$prev" in
                 cd|del_byname)
-                    local _dirs
-                    read -ra _dirs <<< "$(_d::uniq_dir_parts)"
-                    for i in "${!_dirs[@]}"; do
-                        if [[ ${_dirs[$i]} =~ ^${cur//./\\.} ]]; then
-                            printf -v "COMPREPLY[$i]" "%-*s" $COLUMNS "${_dirs[$i]//,/ }"
+                    local i=
+                    while read -r _dir; do
+                        if [[ $_dir =~ ^${cur//./\\.} ]]; then
+                            printf -v "COMPREPLY[i++]" "%-*s" $COLUMNS "$_dir"
                         fi
-                    done
+                    done < <(_d::uniq_dir_parts)
                     ;;
                 up)
                     local i=0
