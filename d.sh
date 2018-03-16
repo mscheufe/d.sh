@@ -275,7 +275,7 @@ _d::complete() {
         2)
             case "$prev" in
                 cd|del_byname)
-                    local i=
+                    local i=0
                     while read -r _dir; do
                         if [[ $_dir =~ ^${cur//./\\.} ]]; then
                             printf -v "COMPREPLY[i++]" "%-*s" $COLUMNS "$_dir"
