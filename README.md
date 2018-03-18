@@ -23,8 +23,8 @@ last subdirectory name. If the last subdirectory name is not unique all the
 parent directory names, required to make a unique identifier, are displayed.
 Running `d cd` with no parameter changes into the `$HOME` directory.
 
-The `d up` command shows all subdirectories of `$PWD` for tab completion.
-Selecting a subdirectory causes `d.sh` to `cd` into it. This works for every
+The `d up` command shows all parent directories of `$PWD` for tab completion.
+Selecting a parent directory causes `d.sh` to `cd` into it. This works for every
 directory not only the ones that are part of `$DIRSTACK`.
 
 The `d del_byindex` command accepts index numbers to delete directories from
