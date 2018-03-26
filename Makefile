@@ -2,7 +2,7 @@ all: lint test
 
 lint:
 	@echo "Running shellcheck"
-	@bash -c "tests/lint.sh" || exit 1
+	@bash -c "cd tests; ./lint.sh" || exit 1
 
 test:
 	@echo "Running tests"
