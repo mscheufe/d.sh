@@ -75,14 +75,11 @@ assert "concat _d::reverse_path / /dir1/dir2/dir3" "/dir3/dir2/dir1"
 assert "concat _d::reverse_path / /dir1/dir2/dir3/" "/dir3/dir2/dir1"
 assert "concat _d::reverse_path / \"/dir1/dir2 space/dir3\"" "/dir3/dir2 space/dir1"
 
-print_info "\\ntesting _dd::is_unique"
+print_info "\\ntesting _d::is_uniq"
 _dirstack=(/dir1/tmp /dir1/dir2/tmp /dir1/dirX)
-_result=$(_d::is_unique 0 tmp "${_dirstack[@]}")
-assert "echo $_result" 1
-_result=$(_d::is_unique 1 dir2/tmp "${_dirstack[@]}")
-assert "echo $_result" 0
-_result=$(_d::is_unique 2 dirX "${_dirstack[@]}")
-assert "echo $_result" 0
+assert_raises "_d::is_uniq dir2/tmp ${_dirstack[*]}" 0
+assert_raises "_d::is_uniq tmp ${_dirstack[*]}" 1
+assert_raises "_d::is_uniq dirX ${_dirstack[*]}" 0
 
 print_info "\\ntesting _d::uniq_part_of_dir"
 _dirstack=(dummy /dir2/tmp /dir0/dir2/tmp /tmp /dir1/dirX)
