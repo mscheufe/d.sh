@@ -7,7 +7,7 @@ DEBUG=1
 STOP=1
 
 set_up_general() {
-    TMPDIR=$(mktemp -d)
+    TMPDIR=$(mktemp -p /tmp -d)
     DIR_STORE_BAK=$DIR_STORE
     DIR_STORE=${TMPDIR}/.dir_store
     d::clear
@@ -29,6 +29,7 @@ concat() {
 
 tear_down() {
     rm -r "$TMPDIR"
+    TMPDIR=
     DIR_STORE="$DIR_STORE_BAK"
 }
 
@@ -118,32 +119,34 @@ _d::delete 2
 assert "dirs -l -v -p | awk 'NR > 1'" " 1  ${TMPDIR}/dir1\\n"
 _d::delete 1
 assert "dirs -l -v -p | awk 'NR > 1'" ""
-tear_down "$TMPDIR"
+tear_down
 
 print_info "\\ntesting _d::get_pos_in_stack"
 set_up_general
 assert "_d::get_pos_in_stack \"dir4\"" "1"
 assert "_d::get_pos_in_stack \"dir 3\"" "2"
-tear_down "$TMPDIR"
+tear_down
 
 print_info "\\ntesting d::add"
 set_up_general
 add_dir=$(set_up_add)
-cd "$add_dir"
-d::add
-assert "grep $add_dir $DIR_STORE" "$add_dir"
-cd - >/dev/null
-tear_down "$TMPDIR"
+(
+    cd "$add_dir"
+    d::add
+    assert "grep $add_dir $DIR_STORE" "$add_dir"
+)
+tear_down
 
 print_info "\\ntesting d::addmany"
 set_up_general
 addmany_dir=$(set_up_addmany)
-cd "$addmany_dir"
-d::addmany
-expected_num_lines=$(grep -c "$addmany_dir" "$DIR_STORE")
-assert "echo ${expected_num_lines##* }" "2"
-cd - >/dev/null
-tear_down "$TMPDIR"
+(
+    cd "$addmany_dir"
+    d::addmany
+    expected_num_lines=$(grep -c "$addmany_dir" "$DIR_STORE")
+    assert "echo ${expected_num_lines##* }" "2"
+)
+tear_down
 
 print_info "\\ntesting _d::populate"
 set_up_populate
@@ -152,7 +155,7 @@ for d in "${TMPDIR}"/{dir1,dir2}; do
     _d::populate "$PWD"
     assert "echo $(d::list | tail -1 | awk '{print $2}')" "$d"
 done
-tear_down "$TMPDIR"
+tear_down
 
 print_info "\\ntesting d::cd"
 set_up_general
@@ -177,7 +180,7 @@ assert_raises "d::cd 1 | grep \"does not exist\"" 0
 # make sure that out of range error is handled properly
 assert_raises "d::cd 10 | grep \"out of range\"" 0
 
-tear_down "$TMPDIR"
+tear_down
 
 # test splitting into subdirectories
 print_info "\\ntesting _d::split_into_subdirs"
