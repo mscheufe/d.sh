@@ -23,39 +23,28 @@ _d::reverse_path() {
     _d::reverse_path "${1%/*}"
 }
 
-# ckecks if $1 matches the end of path at pos $2 in ("$@")
-_d::is_unique() {
-    local _index=$1; shift
-    local _regexp_path="/${1%/}$"; shift
-    local _dirstack=("${@}")
-    local _unique=0
-    for _entry in "${_dirstack[@]}"; do
-        if [[ $_entry != "${_dirstack[$_index]}" ]]; then
-            if [[ $_entry =~ $_regexp_path ]]; then
-                _unique=1
-            fi
-        fi
-    done
-    echo $_unique
+# if only one path in $DIRSTACK ends with $1 return 0 otherwise 1
+_d::is_uniq() {
+    local _pattern="$1"; shift
+    [[ $(printf "%s\n" "$@" | sed -n "\#$_pattern\$#p" | wc -l) -gt 1 ]] && return 1
+    return 0
 }
 
 # determines all unique parts of the path values contained in ("${@}")
 _d::uniq_part_of_dir() {
-    shift; local _dirstack=("${@}")
-    local _uniq_dirs=()
-    for _index in "${!_dirstack[@]}"; do
-        local _path_token=
-        local _unique=
-        while read -r _token; do
-            _path_token="$_token/$_path_token"
-            _unique=$(_d::is_unique "$_index" "$_path_token" "${_dirstack[@]}")
-            if [[ $_unique -eq 0 || ${_dirstack[$_index]}/ = /$_path_token ]]; then
-                _uniq_dirs[${#_uniq_dirs[@]}]=${_path_token%/}
+    shift; local _dirstack=("$@")
+    while read -r line; do
+        local _uniq_part=
+        while read -r token; do
+            _uniq_part="${token}/${_uniq_part}"
+            if _d::is_uniq "/${_uniq_part%/}" "${_dirstack[@]}"; then
+                echo "${_uniq_part%/}"
+                _uniq_part=
                 break
             fi
-        done < <(_d::reverse_path "${_dirstack[$_index]}")
-    done
-    for _dir in "${_uniq_dirs[@]}"; do echo "$_dir"; done
+        done < <(_d::reverse_path "$line")
+        [[ -n "$_uniq_part" ]] && echo "${_uniq_part%/}"
+    done < <(printf "%s\n" "${_dirstack[@]}")
 }
 
 # get all unique parts of the pathes stored in $DIRSTACK
