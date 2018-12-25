@@ -1,9 +1,9 @@
 # d.sh [![Build Status](https://travis-ci.org/mscheufe/dsh.svg?branch=master)](https://travis-ci.org/mscheufe/dsh)
 
 ## Description
-**d.sh** makes it easy to navigate the `$DIRSTACK` array in bash. It provides convenience functions to add/delete directories and to list the contents of `$DIRSTACK`.  
-  
-**d.sh** supports tab completion. To see all possible commands type `d<space><tab><tab>`  
+**d.sh** makes it easy to navigate the `$DIRSTACK` array in bash. It provides convenience functions to add/delete directories and to list the contents of `$DIRSTACK`.
+
+**d.sh** supports tab completion. To see all possible commands type `d<space><tab><tab>`
 
 ```
 list           display $DIRSTACK
@@ -53,7 +53,7 @@ Source it in your .bashrc
 
 By default **d.sh** creates `d` as an alias to invoke the program. The alias can be changed by defining
 the environment variable LEADER.
-  
+
 To map it to another character, like for instance a comma, add the below two lines to your .bashrc.
 
 ```
