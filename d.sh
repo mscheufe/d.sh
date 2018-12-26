@@ -234,7 +234,7 @@ _d::setup_cmd_list() {
             update)
                 _d_cmds[$k]="read \$DIR_STORE and update \$DIRSTACK"
                 ;;
-            clear)
+            reset)
                 _d_cmds[$k]="wipe \$DIRSTACK and \$DIR_STORE"
                 ;;
         esac
@@ -313,7 +313,7 @@ d::main() {
         del_byindex)
             d::delete "$*"
             ;;
-        clear)
+        reset)
             d::clear; return 0
             ;;
         update)
@@ -327,7 +327,7 @@ d::main() {
 
 # setup the environment
 unset _d_cmd_keys
-_d_cmd_keys=("list" "cd" "up" "add" "addirs" "del_byname" "del_byindex" "update" "clear")
+_d_cmd_keys=(list cd up add addirs del_byname del_byindex update reset)
 unset _d_cmds
 declare -A _d_cmds
 _d::setup_cmd_list
