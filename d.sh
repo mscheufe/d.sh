@@ -106,24 +106,7 @@ _d::prependpwd() {
     elif [[ ! $_path =~ ^/|^\. ]]; then
         _path="$PWD/$_path"
     fi
-    echo "$path"
-}
-
-# add all directories provided via STDIN to $DIRSTACK
-_d::addmany() {
-    local temp_1
-    local temp_2
-    temp_1=$(mktemp)
-    temp_2=$(mktemp)
-    while read -r dirname; do
-        dirname=$(_d::prependpwd "$dirname")
-        if [[ -d "$dirname" ]]; then
-            echo "$dirname"
-        fi
-    done </dev/stdin >"$temp_1"
-    cat "$temp_1" "$DIR_STORE" | sort | uniq >"$temp_2"
-    rm "$temp_1"
-    mv "$temp_2" "$DIR_STORE"
+    echo "$_path"
 }
 
 # returns position of dir_name in $DIRSTACK
