@@ -128,22 +128,20 @@ tear_down
 print_info "\\ntesting d::add"
 set_up_general
 add_dir=$(set_up_add)
-(
-    cd "$add_dir"
-    d::add
-    assert "grep $add_dir $DIR_STORE" "$add_dir"
-)
+cd "$add_dir"
+d::add
+assert "grep $add_dir $DIR_STORE" "$add_dir"
+cd - >/dev/null
 tear_down
 
 print_info "\\ntesting d::addmany"
 set_up_general
 addmany_dir=$(set_up_addmany)
-(
-    cd "$addmany_dir"
-    d::addmany
-    expected_num_lines=$(grep -c "$addmany_dir" "$DIR_STORE")
-    assert "echo ${expected_num_lines##* }" "2"
-)
+cd "$addmany_dir"
+d::addmany
+expected_num_lines=$(grep -c "$addmany_dir" "$DIR_STORE")
+assert "echo ${expected_num_lines##* }" "3"
+cd - >/dev/null
 tear_down
 
 print_info "\\ntesting _d::populate"
