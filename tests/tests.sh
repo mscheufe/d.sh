@@ -50,6 +50,12 @@ set_up_addmany() {
     echo "${TMPDIR}/test_addmany"
 }
 
+set_up_run_op() {
+    cd "$TMPDIR"
+    touch "file "{1,2}.txt
+    cd - >/dev/null
+}
+
 set_up_populate() {
     TMPDIR=$(mktemp -d)
     DIR_STORE_BAK=$DIR_STORE
