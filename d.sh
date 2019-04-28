@@ -120,6 +120,18 @@ _d::get_pos_in_stack() {
     done < <(d::list)
 }
 
+_d::get_dir_from_stack() {
+    local -n _dir_ref=$1
+    local _pos=$2
+    local _err_regexp=".+$_pos:(.+)(out.+range)$"
+    _dir_ref=$(dirs -l "+$_pos" 2>&1)
+    if [[ $_dir_ref =~ $_err_regexp ]]; then
+        _d::red "ERROR: ${BASH_REMATCH[1]} '$_dir_ref' ${BASH_REMATCH[2]}"
+        return 1
+    fi
+    return 0
+}
+
 # convert $BASH_VERSION to int
 _d::bash_ver_toint() { local _ver="${BASH_VERSION::6}"; echo "${_ver//./}"; }
 
