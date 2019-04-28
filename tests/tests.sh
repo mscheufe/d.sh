@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=2103
 source ./assert.sh
 source ../d.sh
 
