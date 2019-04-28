@@ -100,11 +100,11 @@ _d::delete() {
 
 # prepend $PWD to relative pathes like ./<PATH> or <PATH>
 _d::prependpwd() {
-    local path="$*"
-    if [[ $path =~ ^\. ]]; then
-        path=${path/./$PWD}
-    elif [[ ! $path =~ ^/|^\. ]]; then
-        path="$PWD/$path"
+    local _path="$1"
+    if [[ $_path =~ ^\. ]]; then
+        _path="${_path/./$PWD}"
+    elif [[ ! $_path =~ ^/|^\. ]]; then
+        _path="$PWD/$_path"
     fi
     echo "$path"
 }
