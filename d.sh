@@ -40,7 +40,7 @@ _d::uniq_part_of_dir() {
             _uniq_part="${token}/${_uniq_part}"
             if _d::is_uniq "/${_uniq_part%/}" "${_dirstack[@]}"; then
                 echo "${_uniq_part%/}"
-                _uniq_part=
+                unset _uniq_part
                 break
             fi
         done < <(_d::reverse_path "$line")
