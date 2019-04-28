@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=2164
 DIR_STORE=${DIR_STORE:-"${HOME}/.dir_store"}
 LEADER=${LEADER:-"d"}
 
