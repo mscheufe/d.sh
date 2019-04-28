@@ -193,4 +193,15 @@ assert "_d::trim_path /dir0/dir1/dir2/dir3 dir1" "/dir0/dir1"
 assert "_d::trim_path /dir0/dir1/dir2/dir3 dir0" "/dir0"
 assert "_d::trim_path /dir0/dir1/dir2/dir3 dirx" ""
 
+# test d::run_op
+print_info "\\ntesting _d::run_op copy multiple files with spaces 'file\ *'"
+set_up_general
+set_up_run_op
+cd "$TMPDIR"
+dest_dir="dir 3"
+d::run_op 'cp' 'file\ *' "$(_d::get_pos_in_stack "$dest_dir")"
+assert "ls -1 \"$TMPDIR/$dest_dir/file \"{1,2}.txt" "$TMPDIR/$dest_dir/file 1.txt\n$TMPDIR/$dest_dir/file 2.txt"
+cd - >/dev/null
+tear_down
+
 assert_end "tests"
