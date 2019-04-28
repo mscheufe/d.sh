@@ -148,20 +148,13 @@ _d::trim_path() {
 
 # cd to the nth element in $DIRSTACK
 d::cd() {
-    [[ "$*" = "" ]] && { cd "$HOME"; return 0; }
-    local err_msg=
-    local err_regexp=".+$1:(.+)(out.+range)$"
-    local dir_tilde_expanded=
-    dir_tilde_expanded=$(dirs -l "+$1" 2>&1)
-    if [[ $dir_tilde_expanded =~ $err_regexp ]]; then
-        err_msg="ERROR: ${BASH_REMATCH[1]} '$1' ${BASH_REMATCH[2]}"
-        echo -e "$(_d::red "$err_msg")"
-    else
-        if [[ -d $dir_tilde_expanded ]]; then
-            cd "$dir_tilde_expanded"
+    local _dir_tilde_expanded _pos="$1"
+    [[ $_pos = "" ]] && { cd "$HOME"; return 0; }
+    if _d::get_dir_from_stack _dir_tilde_expanded "$_pos"; then
+        if [[ -d $_dir_tilde_expanded ]]; then
+            cd "$_dir_tilde_expanded"
         else
-            err_msg="ERROR: directory '$dir_tilde_expanded' does not exist"
-            echo -e "$(_d::red "$err_msg")"
+            _d::red "ERROR: directory '$_dir_tilde_expanded' does not exist\n"
         fi
     fi
 }
