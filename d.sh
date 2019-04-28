@@ -72,19 +72,18 @@ _d::sort() { local _s= ;_s=$(echo "$*" | tr ' ' '\n' | sort -nr | tr '\n' ' '); 
 
 # parameter lists like 6 0 1-5 are expanded and sorted to 6 5 4 3 2 1
 _d::expandparams() {
-    local _exp_params=
-    local _params=
+    local _exp_params=()
+    local _params _values
     read -ra _params <<<"$1"
     for i in "${_params[@]}"; do
         if [[ $i =~ ^([0-9]+)-([0-9]+)$ ]]; then
-            local _values=
             _values=$(eval "echo {${BASH_REMATCH[1]}..${BASH_REMATCH[2]}}")
-            _exp_params="$_exp_params $_values"
+            _exp_params+=("$_values")
         else
-            [[ $i =~ ^[0-9]+$ ]] && _exp_params="$_exp_params $i"
+            [[ $i =~ ^[0-9]+$ ]] && _exp_params+=("$i")
         fi
     done
-    _d::sort "${_exp_params# }"
+    _d::sort "${_exp_params[@]}"
 }
 
 # rm nth element from $DIRSTACK
