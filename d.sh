@@ -168,12 +168,13 @@ d::delete() { _d::delete "$*"; d::update; }
 # add current directory to $DIRSTACK
 d::add() {
     if [[ "$PWD" != "$HOME" ]]; then
-        awk 'NR > 1' <(dirs -l -p) <(echo "$PWD") | sort | uniq >"$DIR_STORE"
+        awk 'NR > 1' <(dirs -l -p) <(echo "$PWD") | sort | uniq > "$DIR_STORE"
     fi
 }
 
 # add all directories available in $PWD
-d::addmany() { find "$PWD" -maxdepth "1" -mindepth "1" -type "d" | _d::addmany; }
+d::addmany() { awk 'NR > 1' <(dirs -l -p) <(find "$PWD" -maxdepth 1 -mindepth 1 -type d -name "[^.]*") \
+               | sort | uniq >"$DIR_STORE"; }
 
 # update $DIRSTACK from $DIR_STORE
 d::update() { _d::populate "$PWD"; }
