@@ -10,7 +10,7 @@ readonly D_COLOR_RED='\033[0;31m'
 readonly D_COLOR_MAGENTA='\033[0;35m'
 
 _d::blue() { echo -en "$D_COLOR_BLUE$*$D_RESET_COL"; }
-_d::red() { echo -en "$D_COLOR_RED$*$D_RESET_COL"; }
+_d::red() { echo -en "$D_COLOR_RED$*$D_RESET_COL\n"; }
 _d::magenta() { echo -en "$D_COLOR_MAGENTA$*$D_RESET_COL"; }
 
 # bash version 4 is required
