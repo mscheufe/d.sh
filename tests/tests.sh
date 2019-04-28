@@ -45,7 +45,7 @@ set_up_add() {
 set_up_addmany() {
     d::clear
     cd "$TMPDIR"
-    mkdir -p test_addmany/{dir1,dir2}
+    mkdir -p test_addmany/{dir1,dir2,dir3,.dot}
     cd - >/dev/null
     echo "${TMPDIR}/test_addmany"
 }
