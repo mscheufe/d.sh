@@ -184,6 +184,22 @@ d::list() { dirs -v -p | awk 'NR > 1'; }
 
 d::up() { cd "$(_d::trim_path "$PWD" "$*")"; }
 
+# cp/mv $1 to directory at pos $2 in $DIRSTACK
+d::run_op() {
+    local _fso _dir_tilde_expanded _opts="-v" _op=$1 _src=$2 _pos=$3
+    if _d::get_dir_from_stack _dir_tilde_expanded "$_pos"; then
+        # next two steps are there to make globbing of <partial filename>\ * work
+        # if $_src contains a * remove it
+        _src=$([[ $_src =~ ([^*]+) ]] && echo "${BASH_REMATCH[0]}" || echo "${_src}")
+        # replace all occurences of "\ " with " "
+        for _fso in "${_src//\\ / }"*; do
+            [[ $_op == cp ]] && [[ -f $_fso ]] && "$_op" "${_opts}p" "$_fso" "$_dir_tilde_expanded"
+            [[ $_op == cp ]] && [[ -d $_fso ]] && "$_op" "${_opts}pr" "$_fso" "$_dir_tilde_expanded"
+            [[ $_op == mv ]] && "$_op" "${_opts}" "$_fso" "$_dir_tilde_expanded"
+        done
+    fi
+}
+
 # list $DIRSTACK and add some color
 d::listcolor() {
     while read -r pos dir; do
@@ -203,7 +219,13 @@ _d::setup_cmd_list() {
                 _d_cmds[$k]="display \$DIRSTACK"
                 ;;
             cd)
-                _d_cmds[$k]="cd to th directory in \$DIRSTACK <tab complete>"
+                _d_cmds[$k]="cd to directory in \$DIRSTACK <tab complete>"
+                ;;
+            copy)
+                _d_cmds[$k]="copy from \$PWD <tab complete> to directory in \$DIRSTACK <tab complete>"
+                ;;
+            move)
+                _d_cmds[$k]="move from \$PWD <tab complete> to directory in \$DIRSTACK <tab complete>"
                 ;;
             up)
                 _d_cmds[$k]="go to a parent directory of \$PWD <tab complete>"
@@ -233,47 +255,56 @@ _d::setup_cmd_list() {
 # completion function
 _d::complete() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
-    local prev="${COMP_WORDS[COMP_CWORD-1]}"
-    case $COMP_CWORD in
-        1)
-            local i=0
-            if [[ -n $cur ]]; then
-                for k in "${!_d_cmds[@]}"; do
-                    if [[ "$k" =~ ^$cur ]]; then
-                        COMPREPLY[i++]=$k
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        local i=0
+        if [[ -n $cur ]]; then
+            for k in "${!_d_cmds[@]}"; do
+                if [[ "$k" =~ ^$cur ]]; then
+                    COMPREPLY[i++]=$k
+                fi
+            done
+        else
+            for k in "${_d_cmd_keys[@]}"; do
+                printf -v _cmd_desc "%-15s%s" "$k" "${_d_cmds[$k]}"
+                printf -v "COMPREPLY[i++]" "%-*s" $COLUMNS "$_cmd_desc"
+            done
+        fi
+    elif [[ $COMP_CWORD -gt 1 ]]; then
+        if [[ ${COMP_WORDS[1]} =~ cd|del_byname ]]; then
+            while read -r _dir; do
+                if [[ $_dir =~ ^${cur//./\\.} ]]; then
+                    COMPREPLY+=("$_dir")
+                fi
+            done < <(_d::uniq_dir_parts)
+        elif [[ ${COMP_WORDS[1]} == up ]]; then
+            while read -r _subdir; do
+                if [[ $_subdir =~ ^$cur ]]; then
+                    COMPREPLY+=("$_subdir")
+                fi
+            done < <(_d::split_into_subdirs "${PWD%/*}")
+        elif [[ ${COMP_WORDS[1]} =~ copy|move ]]; then
+            if (( COMP_CWORD == 2 )); then
+                if [[ -z ${COMP_WORDS[COMP_CWORD]} ]]; then
+                    mapfile -t COMPREPLY < <(ls -p1)
+                else
+                    local fso
+                    printf -v cur "%q" "${COMP_WORDS[COMP_CWORD]}"
+                    [[ $cur =~ .+\* ]] && { COMPREPLY+=("$cur"); return 0; }
+                    while read -r fso; do
+                        if [[ $(printf "%q" "$fso") =~ ^$cur ]]; then
+                            COMPREPLY+=("$(printf "%q" "$fso")")
+                        fi
+                    done < <(ls -p1)
+                fi
+            elif (( COMP_CWORD == 3 )); then
+                while read -r _dir; do
+                    if [[ $_dir =~ ^${cur//./\\.} ]]; then
+                        COMPREPLY+=("$_dir")
                     fi
-                done
-            else
-                for k in "${_d_cmd_keys[@]}"; do
-                    printf -v _cmd_desc "%-15s%s" "$k" "${_d_cmds[$k]}"
-                    printf -v "COMPREPLY[i++]" "%-*s" $COLUMNS "$_cmd_desc"
-                done
+                done < <(_d::uniq_dir_parts)
             fi
-            ;;
-        2)
-            case "$prev" in
-                cd|del_byname)
-                    local i=0
-                    while read -r _dir; do
-                        if [[ $_dir =~ ^${cur//./\\.} ]]; then
-                            printf -v "COMPREPLY[i++]" "%-*s" $COLUMNS "$_dir"
-                        fi
-                    done < <(_d::uniq_dir_parts)
-                    ;;
-                up)
-                    local i=0
-                    while read -r _subdir; do
-                        if [[ $_subdir =~ ^$cur ]]; then
-                            printf -v "COMPREPLY[i++]" "%s" "$_subdir"
-                        fi
-                    done < <(_d::split_into_subdirs "${PWD%/*}")
-                    ;;
-            esac
-            ;;
-        *)
-            return 0
-            ;;
-    esac
+        fi
+    fi
 }
 
 # main functions to easy navigate $DIRSTACK
@@ -293,6 +324,12 @@ d::main() {
         cd)
             d::cd "$(_d::get_pos_in_stack "$*")"
             ;;
+        copy)
+            d::run_op 'cp' "$1" "$(_d::get_pos_in_stack "$2")"
+            ;;
+        move)
+            d::run_op 'mv' "$1" "$(_d::get_pos_in_stack "$2")"
+            ;;
         up)
             d::up "$*"
             ;;
@@ -309,19 +346,19 @@ d::main() {
             d::update
             ;;
     *)
-        echo -e "$(_d::red "Unknown option $1")"
+        _d::red "Unknown option $1"
         ;;
     esac
 }
 
 # setup the environment
 unset _d_cmd_keys
-_d_cmd_keys=(list cd up add addirs del_byname del_byindex update reset)
+_d_cmd_keys=(list cd copy move up add addirs del_byname del_byindex update reset)
 unset _d_cmds
 declare -A _d_cmds
 _d::setup_cmd_list
 eval "alias $LEADER=d::main"
-if (( $(_d::bash_ver_toint "$BASH_VERSION") >= 4418 )); then
+if (( $(_d::bash_ver_toint "$BASH_VERSION") >= 44 )); then
     complete -o nosort -F _d::complete "$LEADER"
 else
     complete -F _d::complete "$LEADER"
