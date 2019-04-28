@@ -88,7 +88,7 @@ _d::expandparams() {
 
 # rm nth element from $DIRSTACK
 _d::delete() {
-    [[ "$*" = "" ]] && { echo -e "$(_d::red "to delete, select a directory")"; return 1; }
+    [[ "$*" = "" ]] && { _d::red "to delete, select a directory"; return 1; }
     params=$(_d::expandparams "$*")
     for i in $params; do
         if [[ $i =~ ^[0-9]+$ && ! "${DIRSTACK[$i]}" = "" ]]; then
