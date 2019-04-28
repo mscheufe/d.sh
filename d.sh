@@ -133,7 +133,7 @@ _d::get_dir_from_stack() {
 }
 
 # convert $BASH_VERSION to int
-_d::bash_ver_toint() { local _ver="${BASH_VERSION::6}"; echo "${_ver//./}"; }
+_d::bash_ver_toint() { local _ver="${BASH_VERSION::3}"; echo "${_ver//[.]/}"; }
 
 # split directory path into its subdirectories
 _d::split_into_subdirs() { local _a="${1#/}"; _a=${_a%/}; echo -e "${_a//\//\\n}"; }
