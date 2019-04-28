@@ -19,7 +19,7 @@ _d::magenta() { echo -en "$D_COLOR_MAGENTA$*$D_RESET_COL"; }
 # reverse a path string
 # /dir0/dir1/dir2 => dir2\\ndir1\\ndir0\\n
 _d::reverse_path() {
-    [[ -n ${1##*/} ]] && echo -en "${1##*/}\\n"
+    [[ -n ${1##*/} ]] && printf '%s\n' "${1##*/}"
     [[ -z "${1%/*}" ]] && return 1
     _d::reverse_path "${1%/*}"
 }
