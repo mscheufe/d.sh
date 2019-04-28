@@ -68,7 +68,7 @@ _d::populate() {
 }
 
 # sort numeric parameters in desc order
-_d::sort() { local _s= ;_s=$(echo "$*" | tr " " "\\n" | sort -nr | tr "\\n" " "); echo -n "${_s% }"; }
+_d::sort() { local _s= ;_s=$(echo "$*" | tr ' ' '\n' | sort -nr | tr '\n' ' '); echo -n "${_s% }"; }
 
 # parameter lists like 6 0 1-5 are expanded and sorted to 6 5 4 3 2 1
 _d::expandparams() {
