@@ -161,7 +161,7 @@ tear_down
 
 print_info "\\ntesting d::cd"
 set_up_general
-# cd from $TMPDIR to $HOME (d::cd with no argument
+# cd from $TMPDIR to $HOME (d::cd with no argument)
 cd "$TMPDIR"
 d::cd
 assert "echo $PWD" "$HOME"
@@ -181,7 +181,6 @@ assert_raises "d::cd 1 | grep \"does not exist\"" 0
 
 # make sure that out of range error is handled properly
 assert_raises "d::cd 10 | grep \"out of range\"" 0
-
 tear_down
 
 # test splitting into subdirectories
